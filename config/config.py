@@ -11,14 +11,18 @@ GLOBAL_CONFIG = {
         "DEBUG": True,  # use False for production
         "PROPAGATE_EXCEPTIONS": True,  # serve REST exceptions to client
         # instead of generic 500 internal server error,
-        "HOST": "127.0.0.1",
-        "PORT": 9099
+        "SERVER_NAME": "localhost:9099",
+        "HOST": "localhost",
+        "PORT": 9099,
     },
     "API_CONFIG": {
-        "LIMIT_DEFAULT": 400,  # default records total
-        "PERPAGE_DEFAULT": 20,  # default records per page
-        "PREFIX": "",  # prefix for all URLs
-        "VERSION": "0.0.1",
+        "limit_default": 400,  # default records total
+        "perpage_default": 20,  # default records per page
+        "prefix": "",  # prefix for all URLs,
+        "version": "2.0",
+        "doc": "/doc",
+        "default_swagger_filename": "/v2/api-docs",
+        "swagger_base_path": "/aiida-server"
     },
     "CLI_DEFAULTS": {
         "HOST_NAME": "127.0.0.1",

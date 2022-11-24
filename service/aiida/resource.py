@@ -25,7 +25,7 @@ class ServerInfo(Resource):
 
     def __init__(self, **kwargs):
         # Configure utils
-        utils_conf_keys = ("PREFIX", "PERPAGE_DEFAULT", "LIMIT_DEFAULT")
+        utils_conf_keys = ("prefix", "perpage_default", "limit_default")
         self.utils_confs = {
             k: kwargs[k] for k in utils_conf_keys if k in kwargs
         }
@@ -65,7 +65,7 @@ class ServerInfo(Resource):
             response["API_revision_version"] = api_version[2]
 
             # Add Rest API prefix
-            response["API_prefix"] = API_CONFIG["PREFIX"]
+            response["API_prefix"] = API_CONFIG["prefix"]
 
             # Add AiiDA version
             response["AiiDA_version"] = __version__
@@ -114,7 +114,7 @@ class BaseResource(Resource):
         self.profile = profile
 
         # Configure utils
-        utils_conf_keys = ("PREFIX", "PERPAGE_DEFAULT", "LIMIT_DEFAULT")
+        utils_conf_keys = ("prefix", "perpage_default", "limit_default")
         self.utils_confs = {
             k: kwargs[k] for k in utils_conf_keys if k in kwargs
         }

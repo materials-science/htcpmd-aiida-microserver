@@ -14,4 +14,4 @@ api.add_namespace(hello, "/hello")
 
 if __name__ == "__main__":
     APP_CONFIG = GLOBAL_CONFIG.get("APP_CONFIG")
-    app.run(host=APP_CONFIG.get("HOST"), port=APP_CONFIG.get("PORT"))
+    app.config.update(**APP_CONFIG)

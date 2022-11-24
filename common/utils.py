@@ -119,16 +119,16 @@ class Utils:
         Sets internally the configuration parameters
         """
 
-        self.prefix = kwargs["PREFIX"]
-        self.perpage_default = kwargs["PERPAGE_DEFAULT"]
-        self.limit_default = kwargs["LIMIT_DEFAULT"]
+        self.prefix = kwargs["prefix"]
+        self.perpage_default = kwargs["perpage_default"]
+        self.limit_default = kwargs["limit_default"]
 
     def strip_api_prefix(self, path):
         """
-        Removes the PREFIX from an URL path. PREFIX must be defined in the
+        Removes the prefix from an URL path. prefix must be defined in the
         config.py file::
 
-            PREFIX = "/api/v2"
+            prefix = "/api/v2"
             path = "/api/v2/calculations/page/2"
             strip_api_prefix(path) ==> "/calculations/page/2"
 

@@ -27,3 +27,6 @@ class Hello(BaseResource):
             current_app.logger.debug(resp)
 
             return Utils.build_response(data=resp)
+
+    def post(self):
+        return Utils.build_response(msg="Hello [POST].")
