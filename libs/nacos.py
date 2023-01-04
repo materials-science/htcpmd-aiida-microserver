@@ -5,10 +5,11 @@ Override default implements of [KcangNacos](
 https://github.com/KcangYan/nacos-python-sdk)
 """
 import hashlib
+import io
 import json
 import logging
 import time
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 import requests
 
@@ -34,11 +35,11 @@ def get_common_headers():
     return headers
 
 
-def fallbackFun():
+def fallbackFun(*args, **kwargs):
     return "request Error"
 
 
-def timeOutFun():
+def timeOutFun(*args, **kwargs):
     return "request time out"
 
 
@@ -197,10 +198,6 @@ class CustNacosBalanceClient:
                  requestParamJson: bool,
                  *args,
                  **kwargs):
-        if headers is None:
-            headers = {}
-        headers.update(get_common_headers())
-
         if method == "GET" or method == "get":
             url = url + "/"
             for item in args:
@@ -223,15 +220,37 @@ class CustNacosBalanceClient:
                     data, ensure_ascii=False).encode("utf-8"),
                                      timeout=self.timeout).text
             else:
-                files = {}
+                files = None
+                data = None
                 for map in args:
                     for key in map:
-                        files[key] = (None, map[key])
-                return requests.post(url, files=files,
+                        if CommonConstant.FORM_DATA_FILE_KEY == key:
+                            if isinstance(map[key], list):
+                                files = map[key]
+                            elif isinstance(map[key], io.BufferedReader):
+                                files = {
+                                    key: (
+                                        CommonConstant.FORM_DATA_FILE_KEY,
+                                        map[key])
+                                }
+                            else:
+                                files = {key: map[key]}
+                return requests.post(url,
+                                     headers=headers,
+                                     files=files,
+                                     data=data,
                                      timeout=self.timeout).text
 
-    def remote_func_call(self, method: str, url: str, headers=None,
-                         is_json=False, https=False):
+    def remote_func_call(self, method: str, url: str,
+                         headers: Dict[str, Any] = None,
+                         is_json=False, https=False,
+                         rpcFun: Callable = None,
+                         timeOutFun: Callable = None,
+                         fallbackFun: Callable = None
+                         ):
+        if headers is None:
+            headers = get_common_headers()
+
         def requestPro(f):
             def mainPro(*args, **kwargs):
                 address = self.__loadBalanceClient(self.serviceName,
@@ -245,15 +264,30 @@ class CustNacosBalanceClient:
                     else:
                         requestUrl = "http://" + address + url
                     try:
+                        # get headers set in called func
+                        if "headers" in kwargs:
+                            headers.update(kwargs.pop("headers"))
+
+                        if rpcFun:
+                            return rpcFun(method, requestUrl, headers,
+                                          is_json, *args, **kwargs)
                         return self.__do_rpc(method, requestUrl, headers,
                                              is_json, *args, **kwargs)
                     except requests.ConnectTimeout:
                         logging.exception("链接超时   ", exc_info=True)
+                        if timeOutFun:
+                            return timeOutFun(self.serviceName, self.group,
+                                              self.namespaceId, method, url)
                         return self.timeOutFun(self.serviceName, self.group,
                                                self.namespaceId, method,
                                                url)
                     except Exception as ex:
                         logging.exception("链接失败   ", exc_info=True)
+                        if fallbackFun:
+                            return fallbackFun(self.serviceName,
+                                               self.group,
+                                               self.namespaceId, method,
+                                               url, ex)
                         return self.fallbackFun(self.serviceName,
                                                 self.group,
                                                 self.namespaceId, method,

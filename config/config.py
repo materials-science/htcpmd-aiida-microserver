@@ -14,6 +14,8 @@ GLOBAL_CONFIG = {
         "SERVER_NAME": "localhost:9099",
         "HOST": "localhost",
         "PORT": 9099,
+        # "UPLOAD_FOLDER": ""
+        # "MAX_CONTENT_LENGTH": ""
     },
     "API_CONFIG": {
         "limit_default": 400,  # default records total
@@ -60,12 +62,32 @@ GLOBAL_CONFIG = {
         "username": "nacos",
         "password": "nacos",
     },
+    # Database
+    "DATABASE": {
+        "SQLALCHEMY_DATABASE_URI":
+            "mysql+pymysql://root:root@localhost/htcpmd-cloud?useUnicode=true"
+            "&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
+            "&useSSL=false"
+    },
+    # Redis
     "REDIS": {
         "host": "localhost",
         "port": "6379",
         "db": "0",
         "username": "",
         "password": ""
+    },
+    # RabbitMQ
+    "RABBITMQ": {
+        "host": "localhost",
+        "port": "5672",
+        "username": "htcpmd",
+        "password": "htcpmd",
+        "virtual-host": "/htcpmd"
+    },
+    "FILE_STORAGE": {
+        "platform": "local",
+        "storage-path": "D:/Temp/test"
     }
 }
 

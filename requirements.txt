@@ -2,7 +2,10 @@ aiida==1.0.1
 Flask~=2.2.2
 KcangNacos==1.7
 PyJWT~=2.6.0
-redis==4.3.5
+redis==4.4.0
 requests~=2.28.1
 wrapt~=1.14.1
 Werkzeug~=2.2.2
+SQLAlchemy==1.4.45
+ase~=3.22.1
+spglib

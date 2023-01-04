@@ -6,3 +6,4 @@
 class CommonConstant:
     FROM_SOURCE_FIELD_NAME = "from-source"
     INNER_SOURCE_FIELD_NAME = "inner"
+    FORM_DATA_FILE_KEY = "file"

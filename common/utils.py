@@ -8,7 +8,10 @@
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
 """ Util methods """
+import os
+import tempfile
 import urllib.parse
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
@@ -24,7 +27,7 @@ from flask import jsonify, request
 from flask.json import JSONEncoder
 from wrapt import decorator
 
-from constant import TokenConstant
+from constant import CommonConstant, TokenConstant
 
 # Important to match querybuilder keys
 PK_DBSYNONYM = "id"
@@ -1140,3 +1143,105 @@ def close_thread_connection(wrapped, _, args, kwargs):
         return wrapped(*args, **kwargs)
     finally:
         get_manager().get_profile_storage().get_session().close()
+
+
+class FileUtil:
+    @staticmethod
+    def get_temp_file_path(prefix=None, suffix=None, sep="", createDir=False,
+                           dir=None) \
+            -> (str, str):
+        """
+
+        :param prefix:
+        :param suffix:
+        :param sep:
+        :param createDir:
+        :param dir:
+        :return: (filename, filepath)
+        """
+        q = []
+        r = os.urandom(24).hex()
+
+        if prefix:
+            q.append(prefix)
+        q.append(r)
+        if suffix:
+            q.append(suffix)
+
+        filename = sep.join(q)
+        if createDir:
+            dir = os.path.join(tempfile.gettempdir(), dir if dir else r)
+            os.path.isdir(dir) is False and os.mkdir(dir)
+            filepath = os.path.join(dir, filename)
+        else:
+            filepath = os.path.join(tempfile.gettempdir(), filename)
+
+        return filename, filepath
+
+    @staticmethod
+    def gen_upload_file_list(fileList):
+        pack = []
+        for file in fileList:
+            pack.append(
+                (CommonConstant.FORM_DATA_FILE_KEY, file)
+            )
+
+        return pack
+
+
+class IDUtil:
+    @staticmethod
+    def simple_uuid() -> str:
+        return str(uuid.uuid4()).replace("-", "")
+
+
+class UnCompress:
+    _COMPRESS_EXTENSION_LIST = ["zip", "tar.gz", "gz"]
+
+    def __init__(self, filepath, dir=None):
+        self.filepath = filepath
+        self.compress_dir = dir
+        self.compress_abs_dir = os.path.dirname(filepath)
+        self.validate()
+
+    def validate(self):
+        valid = False
+        for ext in self._COMPRESS_EXTENSION_LIST:
+            if str(self.filepath).endswith(ext):
+                valid = True
+        if not valid:
+            raise ValueError("File type Not Support")
+        self.compress_abs_dir = os.path.join(self.compress_abs_dir,
+                                             self.compress_dir)
+
+        os.path.isdir(self.compress_abs_dir) == False and os.mkdir(
+            self.compress_abs_dir)
+
+    def un_zip(self):
+        import zipfile
+
+        zip_file = zipfile.ZipFile(self.filepath)
+        zip_file.extractall(self.compress_abs_dir)
+        zip_file.close()
+
+    def un_tar(self):
+        import tarfile
+
+        tar = tarfile.open(self.filepath, "r:")
+        tar.extractall(self.compress_abs_dir)
+        tar.close()
+
+    def un_tar_gz(self):
+        import tarfile
+        tar = tarfile.open(self.filepath, "r:gz")
+        tar.extractall(self.compress_abs_dir)
+        tar.close()
+
+    def extract(self):
+        ps = str(self.filepath)
+        if ps.endswith("zip"):
+            self.un_zip()
+        elif ps.endswith("tar.gz"):
+            self.un_tar_gz()
+        elif ps.endswith("tar"):
+            self.un_tar()
