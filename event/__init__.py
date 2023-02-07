@@ -4,8 +4,10 @@
 Description
 """
 from .structure import upload_structures
+from .test import test
 
 event_services = (
+    test,
     upload_structures,
 )
 

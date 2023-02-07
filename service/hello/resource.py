@@ -3,7 +3,7 @@ from datetime import datetime
 
 from flask import current_app
 
-from common import UserContextHolder
+from common import SecurityContextHolder
 from common.BaseResource import BaseResource
 from common.utils import Utils
 from proxy.UserPorxy import get_user_info
@@ -18,7 +18,7 @@ class Hello(BaseResource):
             return Utils.build_response(
                 data={
                     "id": id,
-                    "username": UserContextHolder.get_username(),
+                    "username": SecurityContextHolder.get_username(),
                     "datetime": datetime.now().isoformat()
                 }
             )

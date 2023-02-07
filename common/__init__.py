@@ -7,6 +7,6 @@
 # For further information on the license, see the LICENSE.txt file        #
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
-from .UserContextHolder import UserContextHolder
+from .SecurityContextHolder import SecurityContextHolder
 
-__all__ = (UserContextHolder,)
+__all__ = (SecurityContextHolder,)

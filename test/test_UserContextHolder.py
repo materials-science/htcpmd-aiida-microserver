@@ -7,7 +7,7 @@ import threading
 import time
 from collections import Counter
 
-from common import UserContextHolder
+from common import SecurityContextHolder
 
 que = []
 
@@ -17,14 +17,14 @@ class Worker(threading.Thread):
     def run(self) -> None:
         super().run()
 
-        UserContextHolder.set_username(self.name.split("-")[-1])
+        SecurityContextHolder.set_username(self.name.split("-")[-1])
         time.sleep(3)
-        UserContextHolder.set_login_user(user={"greeting": self.name})
+        SecurityContextHolder.set_login_user(user={"greeting": self.name})
 
-        que.append(UserContextHolder.get_username())
+        que.append(SecurityContextHolder.get_username())
 
-        assert UserContextHolder.get_username() == self.name
-        assert UserContextHolder.get_login_user().get("greeting") == self.name
+        assert SecurityContextHolder.get_username() == self.name
+        assert SecurityContextHolder.get_login_user().get("greeting") == self.name
 
 
 def test():

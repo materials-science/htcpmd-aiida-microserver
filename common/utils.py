@@ -1147,12 +1147,15 @@ def close_thread_connection(wrapped, _, args, kwargs):
 
 class FileUtil:
     @staticmethod
-    def get_temp_file_path(prefix=None, suffix=None, sep="", createDir=False,
-                           dir=None) \
-            -> (str, str):
+    def get_temp_file_path(prefix=None,
+                           uuid=None,
+                           suffix=None,
+                           sep="",
+                           createDir=False,
+                           dir=None) -> (str, str):
         """
-
         :param prefix:
+        :param uuid:
         :param suffix:
         :param sep:
         :param createDir:
@@ -1160,7 +1163,7 @@ class FileUtil:
         :return: (filename, filepath)
         """
         q = []
-        r = os.urandom(24).hex()
+        r = os.urandom(24).hex() if uuid is None else uuid
 
         if prefix:
             q.append(prefix)

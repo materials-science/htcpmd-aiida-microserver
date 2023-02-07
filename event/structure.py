@@ -71,14 +71,18 @@ def _add_failed_to_parse_structure_file_log(logPush: LogPush, fileInfo: dict,
         .format(fileInfo.get("originalFilename"), fileInfo.get("url"), err))
 
 
-def _upload_file_b(filepath: str, headers, filename: str = None) -> dict:
+def _upload_file_b(filepath: str,
+                   headers,
+                   filename: str = None,
+                   relPath: str = "") -> dict:
     with open(filepath, mode="rb") as rf:
         resp: dict = json.loads(FileProxy.upload_file(
             {
                 CommonConstant.FORM_DATA_FILE_KEY:
                     (filename if filename else
                      os.path.basename(filepath)
-                     , rf)
+                     , rf),
+                "relPath": relPath
             },
             headers=headers
         ))
@@ -88,6 +92,13 @@ def _upload_file_b(filepath: str, headers, filename: str = None) -> dict:
         return resList.pop()
 
     return None
+
+
+def _upload_structure_file_b(filepath: str, headers, filename: str = None,
+                             relPath="") -> \
+        dict:
+    return _upload_file_b(filepath, headers, filename,
+                          relPath="structure/" + relPath)
 
 
 @mq.queue(exchange_name=MqConstant.EVENT_DIRECT_EXCHANGE_NAME,
@@ -122,6 +133,8 @@ def upload_structures(data: dict, headers: dict, message_id: str):
     # 处理结构文件
     for fileInfo in fileList:
         strucInfo = {}
+        uuid = IDUtil.simple_uuid()
+        strucInfo["uuid"] = uuid
         try:
             strucInfo["filepath"] = fileInfo.get("url")
             filePath = FileProxy.download_file(fileInfo)
@@ -143,28 +156,29 @@ def upload_structures(data: dict, headers: dict, message_id: str):
             logPush.info(
                 f"parsed structure {aseAtoms.symbols.get_chemical_formula()} .")
 
-            if fileInfo.get("ext") != "cif":
-                # upload structure cif format
-                tf_name, tf_path = FileUtil.get_temp_file_path(
-                    prefix="structure_",
-                    suffix=".cif")
-                with open(tf_path, mode="w+b") as tf:
-                    aseAtoms.write(tf.name, format="cif")
-                resp = _upload_file_b(tf.name, headers)
-                if resp:
-                    strucInfo["filepath"] = resp.get("url")
-                    logPush.info("Generated cif format file for this "
-                                 "structure.")
-                    del resp
-                del tf_name
-                del tf_path
+            # upload structure cif format
+            tf_name, tf_path = FileUtil.get_temp_file_path(
+                prefix="structure_",
+                uuid=uuid,
+                suffix=".cif")
+            with open(tf_path, mode="w+b") as tf:
+                aseAtoms.write(tf.name, format="cif")
+            resp = _upload_structure_file_b(tf.name, headers, relPath=uuid)
+            if resp:
+                strucInfo["filepath"] = resp.get("url")
+                logPush.info("Generated cif format file for this "
+                             "structure.")
+                del resp
+            del tf_name
+            del tf_path
 
             # upload structure cover image
             tf_name, tf_path = FileUtil.get_temp_file_path(prefix="structure_",
+                                                           uuid=uuid,
                                                            suffix=".png")
             with open(tf_path, mode="w+b") as tf:
                 aseAtoms.write(tf.name, format="png")
-            resp = _upload_file_b(tf.name, headers)
+            resp = _upload_structure_file_b(tf.name, headers, relPath=uuid)
             if resp:
                 strucInfo["cover_img"] = resp.get("url")
                 logPush.info("Generated cover image for this structure.")
@@ -236,6 +250,8 @@ def import_structure_from_aiida(data: dict, headers: dict, message_id: str):
             stru_data = json.loads(fi.read())
             for stru_info in stru_data:
                 strucInfo = {}
+                uuid = IDUtil.simple_uuid()
+                strucInfo["uuid"] = uuid
                 label = stru_info["structure_label"]
                 strucFormat = None
                 if os.path.isfile(
@@ -287,17 +303,21 @@ def import_structure_from_aiida(data: dict, headers: dict, message_id: str):
                                                  "data/structures/{}.jpg"
                                                  .format(label))
                     if os.path.isfile(stru_png_path):
-                        resp = _upload_file_b(stru_png_path, headers)
+                        resp = _upload_structure_file_b(stru_png_path, headers,
+                                                        relPath=uuid)
                     elif os.path.isfile(stru_jpg_path):
-                        resp = _upload_file_b(stru_jpg_path, headers)
+                        resp = _upload_structure_file_b(stru_jpg_path, headers,
+                                                        relPath=uuid)
                     else:
                         # upload structure cover image
                         tf_name, tf_path = FileUtil.get_temp_file_path(
                             prefix="structure_",
+                            uuid=uuid,
                             suffix=".png")
                         with open(tf_path, mode="w+b") as tf:
                             aseAtoms.write(tf.name, format="png")
-                        resp = _upload_file_b(tf.name, headers)
+                        resp = _upload_structure_file_b(tf.name, headers,
+                                                        relPath=uuid)
 
                     if resp:
                         strucInfo["cover_img"] = resp.get("url")
@@ -330,10 +350,12 @@ def import_structure_from_aiida(data: dict, headers: dict, message_id: str):
                     # upload structure cif format
                     tf_name, tf_path = FileUtil.get_temp_file_path(
                         prefix="structure_",
+                        uuid=uuid,
                         suffix=".cif")
                     with open(tf_path, mode="w+b") as tf:
                         aseAtoms.write(tf.name, format="cif")
-                    resp = _upload_file_b(tf.name, headers)
+                    resp = _upload_structure_file_b(tf.name, headers,
+                                                    relPath=uuid)
                     if resp:
                         strucInfo["filepath"] = resp.get("url")
                         logPush.info("Generated cif format file for this "
@@ -356,7 +378,8 @@ def import_structure_from_aiida(data: dict, headers: dict, message_id: str):
                     bands_uuid = IDUtil.simple_uuid()
                     if os.path.isfile(bands_filepath):
                         # upload bands data
-                        resp = _upload_file_b(bands_filepath, headers)
+                        resp = _upload_structure_file_b(bands_filepath, headers,
+                                                        relPath="band/" + uuid)
                         if resp:
                             new_bands_filepath = resp.get("url")
                             logPush.info(
@@ -387,7 +410,10 @@ def import_structure_from_aiida(data: dict, headers: dict, message_id: str):
                     phonons_uuid = IDUtil.simple_uuid()
                     if os.path.isfile(phonons_filepath):
                         # upload phonon dispersion data
-                        resp = _upload_file_b(phonons_filepath, headers)
+                        resp = _upload_structure_file_b(phonons_filepath,
+                                                        headers,
+                                                        relPath="phonon/" +
+                                                                uuid)
                         if resp:
                             new_phonons_filepath = resp.get("url")
                             logPush.info(

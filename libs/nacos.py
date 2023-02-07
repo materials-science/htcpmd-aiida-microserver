@@ -13,21 +13,21 @@ from typing import Any, Callable, Dict
 
 import requests
 
-from common import UserContextHolder
+from common import SecurityContextHolder
 from constant import CommonConstant, TokenConstant, UserConstant
 
 
 def get_common_headers():
     headers = {}
     headers.setdefault(UserConstant.USER_ID_FIELD_NAME,
-                       UserContextHolder.get_user_id())
+                       SecurityContextHolder.get_user_id())
     headers.setdefault(UserConstant.USER_KEY_FIELD_NAME,
-                       UserContextHolder.get_user_key())
+                       SecurityContextHolder.get_user_key())
     headers.setdefault(UserConstant.USERNAME_FIELD_NAME,
-                       UserContextHolder.get_username())
+                       SecurityContextHolder.get_username())
     headers.setdefault(TokenConstant.AUTHENTICATION,
-                       UserContextHolder.get_token())
-    headers.setdefault("X-Forwarded-For", UserContextHolder.get(
+                       SecurityContextHolder.get_token())
+    headers.setdefault("X-Forwarded-For", SecurityContextHolder.get(
         UserConstant.REQUEST_ADDR_FIELD_NAME))
     headers.setdefault(CommonConstant.FROM_SOURCE_FIELD_NAME,
                        CommonConstant.INNER_SOURCE_FIELD_NAME)

@@ -4,8 +4,10 @@ Default configuration for the REST API
 """
 import os
 
+# TODO: function to check valid of CONFIG
+
 GLOBAL_CONFIG = {
-    "APP_NAME": "htcpmd-aiida-server",
+    "APP_NAME": "htcpmd-aiida-server-20629461ac32465da7c37c418912a499",
     "APP_CONFIG": {
         "ENV": "development",
         "DEBUG": True,  # use False for production
@@ -24,7 +26,7 @@ GLOBAL_CONFIG = {
         "version": "2.0",
         "doc": "/doc",
         "default_swagger_filename": "/v2/api-docs",
-        "swagger_base_path": "/aiida-server"
+        "swagger_base_path": "/aiida-server/20629461ac32465da7c37c418912a499"
     },
     "CLI_DEFAULTS": {
         "HOST_NAME": "127.0.0.1",
@@ -56,9 +58,10 @@ GLOBAL_CONFIG = {
         "port": "8849",
         "server_addresses": "127.0.0.1:8849",
         "namespace": "public",
+        # "group": "AIIDA_SERVER",
         "group": "DEFAULT_GROUP",
-        "server_name": "htcpmd-aiida-server",
-        "data_id": "htcpmd-aiida-server.json",
+        "server_name": "htcpmd-aiida-server-20629461ac32465da7c37c418912a499",
+        "data_id": "htcpmd-aiida-server-20629461ac32465da7c37c418912a499.json",
         "username": "nacos",
         "password": "nacos",
     },
@@ -83,7 +86,13 @@ GLOBAL_CONFIG = {
         "port": "5672",
         "username": "htcpmd",
         "password": "htcpmd",
-        "virtual-host": "/htcpmd"
+        "virtual-host": "/htcpmd",
+        "listener": {
+            "retry": True,
+            "max-attempts": 3,
+            "initial-interval": 5000,
+            "max-interval": 50000
+        }
     },
     "FILE_STORAGE": {
         "platform": "local",
